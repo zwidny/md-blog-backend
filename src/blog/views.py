@@ -1,6 +1,7 @@
 import time
-from django.views.generic import View
-from django.http import JsonResponse
+import json
+from django.http import JsonResponse, HttpResponse
+from contrib.views import APIView
 from .models import Blog
 
 
@@ -8,7 +9,7 @@ def get_user_id(request):
     return 1
 
 
-class BlogListView(View):
+class BlogListView(APIView):
     @staticmethod
     def to_dict(obj):
         return {
@@ -26,3 +27,14 @@ class BlogListView(View):
             blog_list = [blog, ]
         blog_list = [self.to_dict(obj) for obj in blog_list]
         return JsonResponse(blog_list, safe=False)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user_id = get_user_id(request)
+            body = json.loads(request.body)
+            content = body.get('content', '')
+            assert content, "content must not be empty"
+            blog = Blog.objects.create(owner=user_id, content=content)
+            return JsonResponse({'blog': self.to_dict(blog)}, status=201)
+        except AssertionError as e:
+            return HttpResponse(str(e), status=422)
