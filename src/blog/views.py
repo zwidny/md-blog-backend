@@ -9,7 +9,7 @@ def get_user_id(request):
     return 1
 
 
-class BlogListView(APIView):
+class BaseBlogView(APIView):
     @staticmethod
     def to_dict(obj):
         return {
@@ -19,13 +19,16 @@ class BlogListView(APIView):
             'modified': int(time.mktime(obj.modified.timetuple()))
         }
 
+
+class BlogListView(BaseBlogView):
+
     def get(self, request, *args, **kwargs):
         user_id = get_user_id(request)
-        blog_list = Blog.objects.filter(owner=user_id)
+        blog_list = Blog.objects.filter(owner=user_id).order_by('-created')
         if not blog_list.exists():
             blog = Blog.objects.generate_first_blog(owner=user_id)
             blog_list = [blog, ]
-        blog_list = [self.to_dict(obj) for obj in blog_list]
+        blog_list = [{'id': obj.id} for obj in blog_list]
         return JsonResponse(blog_list, safe=False)
 
     def post(self, request, *args, **kwargs):
@@ -36,5 +39,18 @@ class BlogListView(APIView):
             assert content, "content must not be empty"
             blog = Blog.objects.create(owner=user_id, content=content)
             return JsonResponse({'blog': self.to_dict(blog)}, status=201)
+        except AssertionError as e:
+            return HttpResponse(str(e), status=422)
+
+
+class BlogDetail(BaseBlogView):
+    def get(self, request, *args, **kwargs):
+        try:
+            _id = kwargs.get('id')
+            assert _id, "id 不能为空"
+            blog = Blog.objects.get(id=_id)
+            return JsonResponse(self.to_dict(blog))
+        except Blog.DoesNotExist as e:
+            return HttpResponse(str(e), status=404)
         except AssertionError as e:
             return HttpResponse(str(e), status=422)

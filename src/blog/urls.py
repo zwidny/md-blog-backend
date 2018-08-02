@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.BlogListView.as_view()),
+    url(r'^(?P<id>\d+)$', views.BlogDetail.as_view()),
 ]
