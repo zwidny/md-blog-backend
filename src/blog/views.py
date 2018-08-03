@@ -52,7 +52,7 @@ class BlogView(BaseBlogView):
             _id = body.get('id', "")
             assert _id, "id must not be none"
             content = body.get("content")
-            Blog.objects.filter(id=_id, user_id=user_id).update(content=content)
+            Blog.objects.filter(id=_id, owner=user_id).update(content=content)
             return HttpResponse(status=200)
         except json.JSONDecodeError as e:
             return HttpResponse(str(e), status=422)
@@ -66,7 +66,7 @@ class BlogView(BaseBlogView):
             body = json.loads(request.body)
             _id = body.get('id', "")
             assert _id, "id must not be none"
-            Blog.objects.filter(id=_id, user_id=user_id).delete()
+            Blog.objects.filter(id=_id, owner=user_id).delete()
             return HttpResponse(status=200)
         except json.JSONDecodeError as e:
             return HttpResponse(str(e), status=422)
