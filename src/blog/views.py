@@ -47,11 +47,26 @@ class BlogView(BaseBlogView):
 
         """
         try:
+            user_id = get_user_id(request)
             body = json.loads(request.body)
             _id = body.get('id', "")
             assert _id, "id must not be none"
             content = body.get("content")
-            Blog.objects.filter(id=_id).update(content=content)
+            Blog.objects.filter(id=_id, user_id=user_id).update(content=content)
+            return HttpResponse(status=200)
+        except json.JSONDecodeError as e:
+            return HttpResponse(str(e), status=422)
+        except AssertionError as e:
+            return HttpResponse(str(e), status=422)
+
+    def delete(self, request, *args, **kwargs):
+        """删除指定blog"""
+        try:
+            user_id = get_user_id(request)
+            body = json.loads(request.body)
+            _id = body.get('id', "")
+            assert _id, "id must not be none"
+            Blog.objects.filter(id=_id, user_id=user_id).delete()
             return HttpResponse(status=200)
         except json.JSONDecodeError as e:
             return HttpResponse(str(e), status=422)
