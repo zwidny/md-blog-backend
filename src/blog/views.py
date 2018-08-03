@@ -20,7 +20,7 @@ class BaseBlogView(APIView):
         }
 
 
-class BlogListView(BaseBlogView):
+class BlogView(BaseBlogView):
 
     def get(self, request, *args, **kwargs):
         user_id = get_user_id(request)
@@ -39,6 +39,22 @@ class BlogListView(BaseBlogView):
             assert content, "content must not be empty"
             blog = Blog.objects.create(owner=user_id, content=content)
             return JsonResponse({'blog': self.to_dict(blog)}, status=201)
+        except AssertionError as e:
+            return HttpResponse(str(e), status=422)
+
+    def put(self, request, *args, **kwargs):
+        """更新blog.
+
+        """
+        try:
+            body = json.loads(request.body)
+            _id = body.get('id', "")
+            assert _id, "id must not be none"
+            content = body.get("content")
+            Blog.objects.filter(id=_id).update(content=content)
+            return HttpResponse(status=200)
+        except json.JSONDecodeError as e:
+            return HttpResponse(str(e), status=422)
         except AssertionError as e:
             return HttpResponse(str(e), status=422)
 
