@@ -21,15 +21,32 @@ class BaseBlogView(APIView):
 
 
 class BlogView(BaseBlogView):
+    @staticmethod
+    def to_dict(obj):
+        return {
+            'id': obj.id,
+            'title': obj.title,
+            'created': int(time.mktime(obj.created.timetuple())),
+            'modified': int(time.mktime(obj.modified.timetuple()))
+        }
 
     def get(self, request, *args, **kwargs):
         user_id = get_user_id(request)
+        _id = request.GET.get('id', None)
+        if not _id:
+            return self.blog_list(user_id)
+        return self.blog(request, id=_id)
+
+    def blog_list(self, user_id):
         blog_list = Blog.objects.filter(owner=user_id).order_by('-created')
         if not blog_list.exists():
             blog = Blog.objects.generate_first_blog(owner=user_id)
             blog_list = [blog, ]
-        blog_list = [{'id': obj.id} for obj in blog_list]
+        blog_list = [self.to_dict(obj) for obj in blog_list]
         return JsonResponse(blog_list, safe=False)
+
+    def blog(self, request, *args, **kwargs):
+        return BlogDetail.as_view()(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
