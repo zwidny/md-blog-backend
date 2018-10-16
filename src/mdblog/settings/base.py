@@ -32,7 +32,6 @@ ALLOWED_HOSTS = ["*", ]
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
 
     # third-party
     'corsheaders',
+    'oauth2_provider',
     # local app
     'blog',
 ]
@@ -128,4 +128,3 @@ STATIC_URL = '/static/'
 
 
 # CORS Settings
-CORS_ORIGIN_ALLOW_ALL = True
